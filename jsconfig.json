@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@look/*": ["src/look/*"],
+      "@pages/*": ["src/layout/pages/*"],
+      "@utils/*": ["src/utils/*"]
+    }
+  }
+}
