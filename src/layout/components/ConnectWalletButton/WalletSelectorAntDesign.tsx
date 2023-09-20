@@ -1,4 +1,3 @@
-import { WalletKitProvider } from "@mysten/wallet-kit"
 import { ConnectButton, useWalletKit } from "@mysten/wallet-kit";
 import { useEffect, useState } from "react";
 

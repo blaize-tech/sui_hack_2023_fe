@@ -1,5 +1,6 @@
 import { Flex, Center, Text, ListItem } from "@chakra-ui/react";
-import { AptCoin, DownIcon } from "@look/components/Icons";
+import { SuiCoin, DownIcon } from "@look/components/Icons";
+// import { PoolInfo } from "@utils/blockchain/Swap";
 
 const PoolsListItem: React.FC = (props: {// @ts-ignore
   poolInfo: poolInfo}) => {
@@ -24,7 +25,7 @@ const PoolsListItem: React.FC = (props: {// @ts-ignore
     >
       <Flex h="100%" w="100%" justifyContent="space-evenly">
         <Flex alignItems="center" w="270px" gap="16px">
-          <AptCoin />
+          <SuiCoin />
           <Text
             fontFamily="orbitron"
             fontWeight="900"

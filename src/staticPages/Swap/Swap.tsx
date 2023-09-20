@@ -12,18 +12,24 @@ import {
 } from '@chakra-ui/react';
 import {HtmlMeta} from '@look/components';
 import {Tab, TabList} from '@look/components/Tabs';
+import {SuiCoin} from '@look/components/Icons';
 import {ConnectWalletButton} from '../../layout/components/ConnectWalletButton';
 import {useStore} from "@utils/store";
-import { PRICE, PRECISION } from '@utils/sui/const';
+import { PRICE, PRECISION } from '@utils/blockchain/sui';
+import { useSwapMethods } from '@utils/sui/hooks';
+import { useWalletKit } from '@mysten/wallet-kit';
 
 export const Swap = () => {
     const [swapAmountIn, setSwapAmountIn] = useState<number>(0);
     const [swapAmountOut, setSwapAmountOut] = useState<number>(0);
     const [exchangeRate, setExchangeRate] = useState<number>(1);
     const [symbolIn, setSymbolIn] = useState<string>("SUI");
-    const [symbolOut, setSymbolOut] = useState<string>("SUI");
+    const [symbolOut, setSymbolOut] = useState<string>("PHZ");
 
-    // const assetSymbols = [...blockChainCore.getAssetSymbols(), "SUI"];
+    const { currentAccount } = useWalletKit();
+    const { buyPHZ, sellPHZ, mintTokens, setRew, getRew } = useSwapMethods();
+
+    const assetSymbols = ['SUI', 'PHZ'];
 
     // const wallet = useWallet();
     const store = useStore();
@@ -56,7 +62,7 @@ export const Swap = () => {
             // const tokenMetadataOut = await blockChainCore.getMetadata(symbolOut);
             // console.log("tokenMetadataOut", tokenMetadataOut);
             // rate = await blockChainCore.getSwap().estimateAssetForAsset(100000000, tokenMetadataIn, tokenMetadataOut);
-            // console.log("rate", rate);
+            console.log("rate", rate);
             setExchangeRate(rate);
         }
 
@@ -69,35 +75,22 @@ export const Swap = () => {
     // const requestUpdateInfo = () => {
     //     setTimeout(() => {
     //         if (!!wallet.account && !!wallet.account.address)
-    //             blockChainCore.UpdateInfo(store, wallet.account.address).catch(console.error);
+    //             // blockChainCore.UpdateInfo(store, wallet.account.address).catch(console.error);
     //         updateRate().catch(console.error);
     //     }, 3000)
     // };
 
+    const initSwap = async () => { // mint tokens and create storage
+        await mintTokens(currentAccount?.address);
+        // await setRew();
+    }
+
     const swap = async () => {
-        if (symbolIn === symbolOut)
-            return;
-        let value = swapAmountIn * PRECISION;
-        console.log("value", value);
-        if (symbolIn === "SUI") {
-            // const tokenMetadata = await blockChainCore.getMetadata(symbolOut);
-            // console.log("tokenMetadata", tokenMetadata);
-            // const hash = await blockChainCore.getSwap().swapCoinForAsset(wallet, tokenMetadata, value);
-            // console.log("|hash", hash);
-        } else if (symbolOut === "SUI") {
-            // const tokenMetadata = await blockChainCore.getMetadata(symbolIn);
-            // console.log("tokenMetadata", tokenMetadata);
-            // const hash = await blockChainCore.getSwap().swapAssetForCoin(wallet, tokenMetadata, value);
-            // console.log("|hash", hash);
-        } else {
-            // const tokenMetadataIn = await blockChainCore.getMetadata(symbolIn);
-            // console.log("tokenMetadataIn", tokenMetadataIn);
-            // const tokenMetadataOut = await blockChainCore.getMetadata(symbolOut);
-            // console.log("tokenMetadataOut", tokenMetadataOut);
-            // const hash = await blockChainCore.getSwap().swapAssetForAsset(wallet, tokenMetadataIn, tokenMetadataOut, value);
-            // console.log("|hash", hash);
-        }
-        // requestUpdateInfo();
+        if(symbolIn === 'SUI') await buyPHZ();
+        else await sellPHZ();
+
+        // const tx = await getRew();
+        // console.log(tx);
     };
 
     const onChangeSwapAmount = (val) => {
@@ -107,27 +100,27 @@ export const Swap = () => {
 
     const handleChangeSymbolIn = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSymbolIn(event.target.value);
-        updateRate().catch(console.error);
-
-        // console.log("symbolIn", event.target.value);
+        if(event.target.value === 'SUI') setSymbolOut('PHZ');
+        else setSymbolOut('SUI');
+        // updateRate().catch(console.error);
     };
 
     const handleChangeSymbolOut = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSymbolOut(event.target.value);
-        updateRate().catch(console.error);
-
-        // console.log("symbolOut", event.target.value);
+        if(event.target.value === 'SUI') setSymbolIn('PHZ');
+        else setSymbolIn('SUI');
+        // updateRate().catch(console.error);
     };
 
     const assetsOptions = [];
-    // assetSymbols.forEach((symbol) => {
-    //     assetsOptions.push(
-    //         // @ts-ignore
-    //         <option value={symbol} key={symbol}>
-    //             {symbol}
-    //         </option>
-    //     )
-    // });
+    assetSymbols.forEach((symbol) => {
+        assetsOptions.push(
+            // @ts-ignore
+            <option value={symbol} key={symbol}>
+                {symbol}
+            </option>
+        )
+    });
 
     return (
         <Box>
@@ -268,6 +261,11 @@ export const Swap = () => {
                         <Button onClick={swap}>Accept and Swap</Button>
                     </Flex>
                 </Box>
+
+                <div style={{display: 'flex', justifyContent: 'space-around', width: '400px', marginTop: '20px'}}>
+                    <button onClick={initSwap}>Mint tokens and create Storage</button>
+                </div>
+
             </Box>
         </Box>
     );

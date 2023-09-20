@@ -16,9 +16,9 @@ import {
 } from '@chakra-ui/react';
 import { HtmlMeta } from '@look/components';
 import { Tab, TabList } from '@look/components/Tabs';
-import { AptCoin } from '@look/components/Icons';
+import { SuiCoin } from '@look/components/Icons';
 import { ConnectWalletButton } from '../../layout/components/ConnectWalletButton';
-import { PRECISION, PRICE } from '@utils/sui/const';
+import { PRECISION, PRICE } from '@utils/blockchain/sui';
 import { useStore } from "@utils/store";
 import { useGetBalance, useStakingMethods } from '@utils/sui/hooks';
 import { useWalletKit } from '@mysten/wallet-kit';
@@ -26,7 +26,7 @@ import { OBJECT_RECORD } from '@utils/index';
 
 export const Stake = () => {
   const { currentAccount } = useWalletKit();
-  const { staking, unstaking } = useStakingMethods();
+  const { staking } = useStakingMethods();
 
   const { onClose } = useDisclosure();
   const [activeTab, setActiveTab] = useState<number>(0);
@@ -36,11 +36,72 @@ export const Stake = () => {
 
   const handleTabChange = (newActive: number) => setActiveTab(newActive);
 
+  // const wallet = useWallet();
   const store = useStore();
+
+  // const SuiBalance = store.state.balances["SUI"] || "0";
+
   // sui balance
-  const suiBalance = useGetBalance(currentAccount?.address || OBJECT_RECORD.AddressZero, 0);
+  const SuiBalance = useGetBalance(currentAccount?.address || OBJECT_RECORD.AddressZero, 0);
 
   const phSUIBalance = store.state.balances["phSUI"] || "0";
+
+  // useEffect(() => {
+  //   if (!!wallet.account && !!wallet.account.address)
+  //     blockChainCore.UpdateInfo(store, wallet.account.address).catch(console.error);
+  // }, [wallet.connected, wallet.account]);
+
+  // const requestUpdateInfo = () => {
+  //   setTimeout(() => {
+  //     if (!!wallet.account && !!wallet.account.address)
+  //       blockChainCore.UpdateInfo(store, wallet.account.address).catch(console.error);
+  //   }, 3000)
+  // };
+
+  // const stakeSui = async () => {
+  //   let value = stakeAmount * PRECISION;
+  //   console.log("value", value);
+  //   const hash = await blockChainCore.getStaking().stakeSui(wallet, value);
+  //   console.log("|hash", hash)
+  //   requestUpdateInfo();
+  // };
+
+
+  // const stakeSui = async () => {
+  //   setIsLoading(true);
+
+  //   try {
+  //     let value = stakeAmount * PRECISION;
+  //     console.log("value", value);
+  //     const hash = await blockChainCore.getStaking().stakeSui(wallet, value);
+  //     console.log("|hash", hash);
+  //     requestUpdateInfo();
+  //   } catch (error) {
+  //     console.error(error);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+
+  // const withdrawSui = async () => {
+  //   let value = withdrawAmount * PRECISION;
+  //   const hash = await blockChainCore.getStaking().withdrawSui(wallet, value);
+  //   requestUpdateInfo();
+  // };
+
+  // const withdrawSui = async () => {
+  //   setIsLoading(true);
+
+  //   try {
+  //     let value = withdrawAmount * PRECISION;
+  //     const hash = await blockChainCore.getStaking().withdrawSui(wallet, value);
+  //     requestUpdateInfo();
+  //   } catch (error) {
+  //     console.error(error);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
   const onChaneStakeAmount = (val) => {
     setStakeAmount(val.target.value);
@@ -50,13 +111,14 @@ export const Stake = () => {
     setWithdrawAmount(val.target.value);
   };
 
+
   const handleStake = async (amount: number) => {
     let tx = await staking(amount || 0);
     console.log(tx);
   };
 
   const handleUnstake = async (amount: number) => {
-    let tx = await unstaking(amount || 0);
+    let tx = await staking(amount || 0);
     console.log(tx);
   };
 
@@ -92,8 +154,8 @@ export const Stake = () => {
                     color="gray"
                   >
                     <Text >${(PRICE * stakeAmount).toFixed(2)}</Text>
-                    {/* <Text>Balance: {suiBalance/PRECISION}</Text> */}
-                    <Text>Balance: {suiBalance}</Text>
+                    {/* <Text>Balance: {SuiBalance/PRECISION}</Text> */}
+                    <Text>Balance: {SuiBalance}</Text>
                   </Flex>
                   <Flex
                     justifyContent="space-between"
@@ -119,7 +181,7 @@ export const Stake = () => {
                       />
                     </NumberInput>
                     <Flex alignItems="center" gap="8px">
-                      <AptCoin />
+                      <SuiCoin />
                       SUI
                     </Flex>
                   </Flex>
@@ -166,7 +228,7 @@ export const Stake = () => {
                       />
                     </NumberInput>
                     <Flex alignItems="center" gap="8px">
-                      <AptCoin />
+                      <SuiCoin />
                       phSUI
                     </Flex>
                   </Flex>
@@ -213,8 +275,8 @@ export const Stake = () => {
                   </GridItem>
                 </Grid>
                 <Flex justifyContent="center">
-                  {/* <Button onClick={stakeSUI}>Accept and Bond</Button> */}
-                  <Button onClick={handleStake.bind(null, 10000000)}>Accept and Bond</Button>
+                  {/* <Button onClick={stakeSui}>Accept and Bond</Button> */}
+                  <Button onClick={handleStake.bind(null, stakeAmount)}>Accept and Bond</Button>
                 </Flex>
                 {/*< ----- >*/}
               </Box>
@@ -262,7 +324,7 @@ export const Stake = () => {
                       />
                     </NumberInput>
                     <Flex alignItems="center" gap="8px">
-                      <AptCoin />
+                      <SuiCoin />
                       phSUI
                     </Flex>
                   </Flex>
@@ -283,8 +345,8 @@ export const Stake = () => {
                     color="gray"
                   >
                     <Text>${(PRICE * withdrawAmount).toFixed(2)}</Text>
-                    {/* <Text>Balance: {suiBalance/PRECISION}</Text> */}
-                    <Text>Balance: {suiBalance}</Text>
+                    {/* <Text>Balance: {SuiBalance/PRECISION}</Text> */}
+                    <Text>Balance: {SuiBalance}</Text>
                   </Flex>
                   <Flex
                     justifyContent="space-between"
@@ -310,7 +372,7 @@ export const Stake = () => {
                       />
                     </NumberInput>
                     <Flex alignItems="center" gap="8px">
-                      <AptCoin />
+                      <SuiCoin />
                       SUI
                     </Flex>
                   </Flex>
@@ -359,7 +421,7 @@ export const Stake = () => {
                   </GridItem>
                 </Grid>
                 <Flex justifyContent="center">
-                  <Button onClick={handleUnstake.bind(null, 10000000)}>Accept and Redeem</Button>
+                  <Button onClick={handleUnstake.bind(null, withdrawAmount)}>Accept and Redeem</Button>
                 </Flex>
                 {/*< ----- >*/}
               </Box>

@@ -6,25 +6,30 @@ import {
 } from '@chakra-ui/react';
 import {HtmlMeta} from '@look/components';
 import {Tab, TabList} from '@look/components/Tabs';
-import { AptCoin } from '@look/components/Icons';
+import { SuiCoin } from '@look/components/Icons';
 import { ConnectWalletButton } from '../../layout/components/ConnectWalletButton';
 import {useStore} from "@utils/store";
-import { PRECISION, toDisplayValue } from '@utils/sui/const';
+import { PRECISION, toDisplayValue } from '@utils/blockchain/sui';
+import { getTokensBalance, useStakingMethods } from '@utils/sui/hooks';
+import { useWalletKit } from '@mysten/wallet-kit';
 
 export const Split = () => {
   const [activeTab, setActiveTab] = useState<number>(0);
   const [stakeAmount, setStakeAmount] = useState<number>(0);
   const [withdrawAmount, setWithdrawAmount] = useState<number>(0);
 
+  const { mintTokens, generatePool, createPocket, mergeCoins, splitCoins } = useStakingMethods();
+  const { currentAccount } = useWalletKit();
+
   const handleTabChange = (newActive: number) => setActiveTab(newActive);
 
   // const wallet = useWallet();
   const store = useStore();
 
-  const suiBalance = store.state.balances["SUI"] || "0";
-  const phSUIBalance = store.state.balances["phSUI"] || "0";
-  const pPhAptBalance = store.state.balances["pPhApt"] || "0";
-  const yPhAptBalance = store.state.balances["yPhApt"] || "0";
+  const SuiBalance = store.state.balances["SUI"] || "0";
+  const phSUIBalance = store.state.balances["pSUI"] || "0";
+  const pPhSuiBalance = store.state.balances["pPSUI"] || "0";
+  const yPhSuiBalance = store.state.balances["yPSUI"] || "0";
 
   // const requestUpdateInfo = () => {
   //   setTimeout(()=>{
@@ -37,20 +42,14 @@ export const Split = () => {
   //   requestUpdateInfo()
   // }, [wallet.connected, wallet.account]);
 
-  const stakePhSUI = async () => {
-    let value = stakeAmount * Math.pow(10, 8);
-    console.log("value", value);
-    // const hash = await blockChainCore.getStaking().stakePhApt(wallet, value);
-    // console.log("|hash", hash)
-    // requestUpdateInfo();
+  const split = async () => {
+    const res = await splitCoins(10000000, 15000000);
+    console.log(res);
   };
 
-  const withdrawPhSUI = async () => {
-    let value = withdrawAmount * Math.pow(10, 8);
-    console.log("value", value);
-    // const hash = await blockChainCore.getStaking().withdrawPhApt(wallet, value);
-    // console.log("|hash", hash)
-    // requestUpdateInfo();
+  const merge = async () => {
+    const res = await mergeCoins(10000, 15000);
+    console.log(res);
   };
 
   const onChaneStakeAmount = (val) =>{
@@ -79,7 +78,7 @@ export const Split = () => {
               Total SUI in Vault
             </Text>
             <Text fontFamily="orbitron" fontSize="22px" fontWeight={900}>
-              {92440.793 + phSUIBalance / PRECISION} SUI
+              {phSUIBalance / PRECISION} SUI
             </Text>
           </Box>
         </HStack>
@@ -121,8 +120,8 @@ export const Split = () => {
                       />
                     </NumberInput>
                     <Flex alignItems="center" gap="8px" marginRight="12px" fontFamily="orbitron" fontSize="18px" fontWeight={900}>
-                      <AptCoin />
-                      phSUI
+                      <SuiCoin />
+                      pSUI
                     </Flex>
                   </Grid>
                 </GridItem>
@@ -157,8 +156,8 @@ export const Split = () => {
                       />
                     </NumberInput>
                     <Flex alignItems="center" gap="8px" marginRight="12px" fontFamily="orbitron" fontSize="18px" fontWeight={900}>
-                      <AptCoin />
-                      pPhSUI
+                      <SuiCoin />
+                      pPSUI
                     </Flex>
                   </Grid>
                 </GridItem>
@@ -193,14 +192,14 @@ export const Split = () => {
                       />
                     </NumberInput>
                     <Flex alignItems="center" gap="8px" marginRight="12px" fontFamily="orbitron" fontSize="18px" fontWeight={900}>
-                      <AptCoin />
-                      yPhSUI
+                      <SuiCoin />
+                      yPSUI
                     </Flex>
                   </Grid>
                 </GridItem>
               </Grid>
               <Flex justifyContent="center">
-                <Button onClick={stakePhSUI}>Accept and Split</Button>
+                <Button onClick={split}>Accept and Split</Button>
               </Flex>
             </Box>
           </Tab>
@@ -215,7 +214,7 @@ export const Split = () => {
                   {/*  Principal Token Amount*/}
                   {/*</Text>*/}
                   <Text color="gray" fontSize="12px" mb="24px" fontWeight={700}>
-                    Available: {toDisplayValue(pPhAptBalance)}
+                    Available: {toDisplayValue(pPhSuiBalance)}
                   </Text>
                   <Grid
                       templateColumns="1fr auto"
@@ -244,8 +243,8 @@ export const Split = () => {
                       />
                     </NumberInput>
                     <Flex alignItems="center" gap="8px" marginRight="12px" fontFamily="orbitron" fontSize="18px" fontWeight={900}>
-                      <AptCoin />
-                      pPhSUI
+                      <SuiCoin />
+                      pPSUI
                     </Flex>
                   </Grid>
                 </GridItem>
@@ -254,7 +253,7 @@ export const Split = () => {
                   {/*  Yield Token Amount*/}
                   {/*</Text>*/}
                   <Text color="gray" fontSize="12px" mb="24px" fontWeight={700}>
-                    Available: {toDisplayValue(yPhAptBalance)}
+                    Available: {toDisplayValue(yPhSuiBalance)}
                   </Text>
                   <Grid
                       templateColumns="1fr auto"
@@ -283,8 +282,8 @@ export const Split = () => {
                       />
                     </NumberInput>
                     <Flex alignItems="center" gap="8px" marginRight="12px" fontFamily="orbitron" fontSize="18px" fontWeight={900}>
-                      <AptCoin />
-                      yPhSUI
+                      <SuiCoin />
+                      yPSUI
                     </Flex>
                   </Grid>
                 </GridItem>
@@ -319,18 +318,25 @@ export const Split = () => {
                       />
                     </NumberInput>
                     <Flex alignItems="center" gap="8px" marginRight="12px" fontFamily="orbitron" fontSize="18px" fontWeight={900}>
-                      <AptCoin />
-                      phSUI
+                      <SuiCoin />
+                      pSUI
                     </Flex>
                   </Grid>
                 </GridItem>
               </Grid>
               <Flex justifyContent="center">
-                <Button onClick={withdrawPhSUI}>Accept and merge</Button>
+                <Button onClick={merge}>Accept and merge</Button>
               </Flex>
             </Box>
           </Tab>
         </TabList>
+
+        <div style={{display: 'flex', justifyContent: 'space-around', width: '400px', marginTop: '20px'}}>
+          <button onClick={mintTokens.bind(null, currentAccount?.address)}>Mint Tokens</button>
+          <button onClick={generatePool}>Generate Pool</button>
+          <button onClick={createPocket}>Create Pocket</button>
+        </div>
+
       </Box>
     </Box>
   );
